@@ -1,13 +1,14 @@
+import type { Context } from 'telegraf';
 import { Telegraf } from 'telegraf';
 import type { Logger } from 'pino';
 
 import type { AppConfig } from '../config/env.js';
-import { ChatService } from '../services/chat.js';
+import type { ChatService } from '../services/chat.js';
 
 export function createTelegramBot(config: AppConfig, chatService: ChatService, logger: Logger) {
   const bot = new Telegraf(config.TELEGRAM_BOT_TOKEN);
 
-  const guardOwner = async (ctx: Parameters<typeof bot.on>[1] extends (...args: infer A) => unknown ? A[0] : never) => {
+  const guardOwner = async (ctx: Context): Promise<boolean> => {
     if (ctx.from?.id !== config.TELEGRAM_OWNER_ID) {
       logger.warn({ userId: ctx.from?.id, updateType: ctx.updateType }, 'telegram_unauthorized_access');
       await ctx.reply('Unauthorized: this bot is restricted to the owner.');

@@ -31,15 +31,13 @@ async function main() {
     retries: config.PROVIDER_RETRY_ATTEMPTS
   });
 
-  const chatService = new ChatService(
-    provider,
-    {
-      model: config.OPENAI_MODEL,
-      fallbackModel: config.OPENAI_FALLBACK_MODEL,
-      retryAttempts: config.PROVIDER_RETRY_ATTEMPTS
-    },
-    logger
-  );
+  const chatConfig = {
+    model: config.OPENAI_MODEL,
+    retryAttempts: config.PROVIDER_RETRY_ATTEMPTS,
+    ...(config.OPENAI_FALLBACK_MODEL ? { fallbackModel: config.OPENAI_FALLBACK_MODEL } : {})
+  };
+
+  const chatService = new ChatService(provider, chatConfig, logger);
 
   const app = await buildApp({
     config,
@@ -60,7 +58,7 @@ async function main() {
 
   const shutdown = async (signal: NodeJS.Signals) => {
     logger.info({ signal }, 'shutdown_signal_received');
-    await Promise.allSettled([app.close(), bot.stop(signal)]);
+    await Promise.allSettled([app.close(), Promise.resolve(bot.stop(signal))]);
     logger.info('shutdown_complete');
     process.exit(0);
   };
@@ -75,7 +73,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  // eslint-disable-next-line no-console
   console.error(error);
   process.exit(1);
 });

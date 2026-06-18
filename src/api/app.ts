@@ -6,12 +6,12 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 import type { AppConfig } from '../config/env.js';
-import { EventBus } from '../events/bus.js';
+import type { EventBus } from '../events/bus.js';
 import type { ToolRegistry } from '../tools/registry.js';
 import type { ApprovalStore } from '../approvals/types.js';
 import type { SessionRepository } from '../storage/types.js';
 import { healthSchema } from './schemas.js';
-import { AuditService } from '../services/audit.js';
+import type { AuditService } from '../services/audit.js';
 
 export interface AppDeps {
   config: AppConfig;
@@ -116,7 +116,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get('/ws/events', { websocket: true }, (connection) => {
-    const send = (data: unknown) => connection.send(JSON.stringify(data));
+    const send = (data: unknown) => connection.socket.send(JSON.stringify(data));
 
     send({ type: 'connection.ready', timestamp: new Date().toISOString() });
 
@@ -126,7 +126,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
     deps.eventBus.on('event', handler);
 
-    connection.on('close', () => {
+    connection.socket.on('close', () => {
       deps.eventBus.off('event', handler);
     });
   });

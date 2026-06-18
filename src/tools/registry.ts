@@ -1,8 +1,8 @@
 import type { Logger } from 'pino';
 
 import type { ApprovalStore, RiskLevel } from '../approvals/types.js';
-import { EventBus } from '../events/bus.js';
-import { AuditService } from '../services/audit.js';
+import type { EventBus } from '../events/bus.js';
+import type { AuditService } from '../services/audit.js';
 import type { Tool, ToolResult } from './types.js';
 
 export class ToolRegistry {
@@ -35,12 +35,21 @@ export class ToolRegistry {
     }
 
     if (requiresApproval(tool.metadata.risk)) {
+      const commandPreview =
+        typeof input === 'object' && input !== null && 'command' in input
+          ? String((input as { command: unknown }).command)
+          : undefined;
+      const filesPreview =
+        typeof input === 'object' && input !== null && 'filePath' in input
+          ? [String((input as { filePath: unknown }).filePath)]
+          : undefined;
+
       const pending = this.approvals.create({
         toolName,
         risk: tool.metadata.risk,
         reason,
-        commandPreview: typeof input === 'object' && input !== null && 'command' in input ? String((input as { command: unknown }).command) : undefined,
-        filesPreview: typeof input === 'object' && input !== null && 'filePath' in input ? [String((input as { filePath: unknown }).filePath)] : undefined,
+        ...(commandPreview ? { commandPreview } : {}),
+        ...(filesPreview ? { filesPreview } : {}),
         rollbackHint: `Review ${toolName} side-effects and restore workspace snapshot if needed.`
       });
 

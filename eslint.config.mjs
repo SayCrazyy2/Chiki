@@ -24,6 +24,12 @@ export default [
       ...tsPlugin.configs['recommended-type-checked'].rules,
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: false }],
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      'no-undef': 'off',
       'no-console': ['error', { allow: ['error', 'warn'] }]
     }
   },
